@@ -4,6 +4,11 @@ import { Song } from '@/lib/types';
 
 export async function GET(request: NextRequest) {
   try {
+    const apiKey = request.headers.get('x-api-key');
+    if (apiKey !== process.env.API_KEY) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const url = new URL(request.url);
     const username = url.searchParams.get('username');
 
