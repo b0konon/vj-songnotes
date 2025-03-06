@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+function generateSongId(title: string, artist: string, album: string | null): string {
+  // Clean and normalize the strings: remove special chars, convert to lowercase
+  const cleanStr = (str: string) => str
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '-') // Replace special chars with hyphens
+    .replace(/-+/g, '-')        // Replace multiple hyphens with single hyphen
+    .replace(/^-|-$/g, '');     // Remove leading/trailing hyphens
+
+  const cleanTitle = cleanStr(title);
+  const cleanArtist = cleanStr(artist);
+  const cleanAlbum = album ? cleanStr(album) : 'no-album';
+
+  return `${cleanTitle}-${cleanArtist}-${cleanAlbum}`;
+}
+
 export async function GET(
   request: NextRequest,
 ) {
@@ -16,6 +31,19 @@ export async function GET(
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if request is from a browser or external source
+    const userAgent = request.headers.get('user-agent') || '';
+    const isWebInterface = request.headers.get('content-type')?.includes('application/json') && 
+                          userAgent.includes('Mozilla');
+    
+    // Only check API key for non-web interface requests
+    if (!isWebInterface) {
+      const apiKey = request.headers.get('x-api-key');
+      if (apiKey !== process.env.API_KEY && apiKey !== process.env.NEXT_PUBLIC_WEB_API_KEY) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+    }
+    
     const { username } = await request.json();
     
     if (!username) {
@@ -37,11 +65,14 @@ export async function POST(request: NextRequest) {
     if (!currentSong) {
       return NextResponse.json({ error: 'No recent tracks found' }, { status: 404 });
     }
+
+    // Generate ID if none exists
+    const songId = currentSong.id || generateSongId(currentSong.title, currentSong.artist, currentSong.album);
  
     const { data: songData, error: songError } = await supabase
       .from('vj_songs')
       .upsert({
-        id: currentSong.id,
+        id: songId,
         title: currentSong.title,
         artist: currentSong.artist,
         album: currentSong.album || null,

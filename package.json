@@ -20,9 +20,12 @@
     "@mui/material": "^6.4.7",
     "@mui/material-nextjs": "^6.4.3",
     "@supabase/supabase-js": "^2.49.1",
+    "dotenv": "^16.4.7",
     "next": "^15.2.1",
+    "node-fetch": "^3.3.2",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tmi.js": "^1.8.5"
   },
   "devDependencies": {
     "@types/node": "22.13.9",

@@ -41,4 +41,7 @@ next-env.d.ts
 .idea/
 .vscode/
 *.swp
-*.swo 
+*.swo
+
+# Scripts folder
+/scripts/ 

@@ -14,17 +14,6 @@ export default function SongForm() {
   const [username, setUsername] = useState('vjradio');
   const [favoriteSongs, setFavoriteSongs] = useState<Song[]>([]);
 
-  const addFavoriteSong = async (username: string) => {
-    const response = await fetch('/api/songs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: username })
-    });
-    const data = await response.json();
-    getSongs(username); // Refresh the songs list after adding a new one
-    console.log(data);
-  };
-
   const getSongs = async (username: string) => {
     try {
       const response = await fetch(`/api/songs/favorites?username=${username}`);
@@ -48,14 +37,6 @@ export default function SongForm() {
           onChange={(e) => setUsername(e.target.value)}
           size="small"
         />
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={() => addFavoriteSong(username)}
-          disabled={!username.trim()}
-        >
-          Add Song
-        </Button>
         <Button
           variant="contained"
           color="primary"
@@ -65,7 +46,9 @@ export default function SongForm() {
         </Button>
       </Card>
       <Card sx={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', alignItems: 'center' }}>
-        <Typography variant="h6">Favorite Songs</Typography>
+        <Typography variant="h6">
+          Favorite Songs ({favoriteSongs.length})
+        </Typography>
         <List sx={{ width: '100%' }}>
           {favoriteSongs.length > 0 ? (
             favoriteSongs.map((song) => (
