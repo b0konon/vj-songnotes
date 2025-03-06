@@ -11,13 +11,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Username is required' }, { status: 400 });
     }
 
-    // Query to get all songs favorited by the user through the junction table
+    // Get favorite songs for the user using a simpler query
     const { data, error } = await supabase
       .from('vj_user_songs')
-      .select(`
-        song_id,
-        vj_songs!inner(id, title, artist, album)
-      `)
+      .select('song_id')
       .eq('user_username', username);
 
     if (error) {
@@ -25,11 +22,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch favorite songs' }, { status: 500 });
     }
 
-    const favoriteSongs: Song[] = data.map(item => ({
-      id: item.song_id,
-      title: item.vj_songs[0].title,
-      artist: item.vj_songs[0].artist,
-      album: item.vj_songs[0].album
+    if (!data || data.length === 0) {
+      return NextResponse.json([]);
+    }
+
+    // Get song details in a separate query
+    const songIds = data.map(item => item.song_id);
+    const { data: songsData, error: songsError } = await supabase
+      .from('vj_songs')
+      .select('id, title, artist, album')
+      .in('id', songIds);
+
+    if (songsError) {
+      console.error('Error fetching song details:', songsError);
+      return NextResponse.json({ error: 'Failed to fetch song details' }, { status: 500 });
+    }
+
+    // Convert to Song type
+    const favoriteSongs: Song[] = songsData.map(song => ({
+      id: song.id,
+      title: song.title || '',
+      artist: song.artist || '',
+      album: song.album || ''
     }));
 
     return NextResponse.json(favoriteSongs);
