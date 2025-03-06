@@ -17,7 +17,9 @@ export default function SongForm() {
   const addFavoriteSong = async (username: string) => {
     const response = await fetch('/api/songs', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ username: username })
     });
     const data = await response.json();

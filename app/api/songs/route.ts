@@ -16,6 +16,19 @@ export async function GET(
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if request is from a browser or external source
+    const userAgent = request.headers.get('user-agent') || '';
+    const isWebInterface = request.headers.get('content-type')?.includes('application/json') && 
+                          userAgent.includes('Mozilla');
+    
+    // Only check API key for non-web interface requests
+    if (!isWebInterface) {
+      const apiKey = request.headers.get('x-api-key');
+      if (apiKey !== process.env.API_KEY && apiKey !== process.env.NEXT_PUBLIC_WEB_API_KEY) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+    }
+    
     const { username } = await request.json();
     
     if (!username) {
